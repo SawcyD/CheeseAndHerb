@@ -315,33 +315,61 @@ function CombatService:PlayAttackAnimation(character, attackType)
         local weaponType = replica.Data.EquippedWeapon.WeaponType
         local animationId
         local holdDuration
+        local isAnimationPlaying = false -- Added variable to track animation state
 
-        if attackType == "LightAttack" then
-            local lightAttackAnimations = comboAnimations[weaponType].Attacks.LightAttack.AnimationIds
-            if lightAttackAnimations and #lightAttackAnimations > 0 then
-                -- Select a random animation ID
-                local randomIndex = math.random(1, #lightAttackAnimations)
-                animationId = lightAttackAnimations[randomIndex]
+        if humanoid:GetState() ~= Enum.HumanoidStateType.Running then
+            -- Only play attack animation if the humanoid is not running
+
+            if attackType == "LightAttack" then
+                local lightAttackAnimations = comboAnimations[weaponType].Attacks.LightAttack.AnimationIds
+                if lightAttackAnimations and #lightAttackAnimations > 0 then
+                    -- Select a random animation ID
+                    local randomIndex = math.random(1, #lightAttackAnimations)
+                    animationId = lightAttackAnimations[randomIndex]
+                end
+            elseif attackType == "HeavyAttack" then
+                animationId = comboAnimations[weaponType].Attacks.HeavyAttack.AnimationId
+                holdDuration = comboAnimations[weaponType].Attacks.HeavyAttack.holdDuration
             end
-        elseif attackType == "HeavyAttack" then
-            animationId = comboAnimations[weaponType].Attacks.HeavyAttack.AnimationId
-            holdDuration = comboAnimations[weaponType].Attacks.HeavyAttack.holdDuration
+
+            if animationId then
+                local animation = Instance.new("Animation")
+                animation.AnimationId = animationId
+
+                local loadedAnimation = humanoid:LoadAnimation(animation)
+                loadedAnimation:Play()
+                isAnimationPlaying = true -- Set the animation state to true
+
+                loadedAnimation.Stopped:Wait()
+                isAnimationPlaying = false -- Set the animation state to false when animation stops
+            end
+
+            if holdDuration then
+                -- Add a hold effect for heavy attacks
+                task.wait(holdDuration)
+            end
         end
 
-        if animationId then
-            local animation = Instance.new("Animation")
-            animation.AnimationId = animationId
+        -- Play the idle animation if the player is not moving or attacking
+        if attackType == nil and humanoid.MoveDirection.Magnitude == 0 then
+            local idleAnimationId = comboAnimations[weaponType].Idle.AnimationId
+            if idleAnimationId then
+                local idleAnimation = Instance.new("Animation")
+                idleAnimation.AnimationId = idleAnimationId
 
-            local loadedAnimation = humanoid:LoadAnimation(animation)
-            loadedAnimation:Play()
+                local loadedIdleAnimation = humanoid:LoadAnimation(idleAnimation)
+                loadedIdleAnimation:Play()
+                isAnimationPlaying = true -- Set the animation state to true
+            end
         end
 
-        if holdDuration then
-            -- Add a hold effect for heavy attacks
-            task.wait(holdDuration)
-        end
+        -- Do something with the animation state (isAnimationPlaying)
+        -- You can access this variable outside the function to check if an animation is playing or not.
+        print("Animation state:", isAnimationPlaying)
     end)
 end
+
+
 
 function CombatService:GetSkillDataFromWeaponsData(skillName)
     if weaponsData[skillName] then

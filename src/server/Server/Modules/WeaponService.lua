@@ -107,7 +107,7 @@ function WeaponManager:UnequipWeapon(weaponName)
 			local character = Player.Character
 			local humanoid = character:WaitForChild("Humanoid")
 
-			local handle = weaponModel:WaitForChild("Handle")
+			local handle = weaponModel.Handle
 
 			-- Remove the weapon from the right hand
 			local weaponWeld = handle:FindFirstChild("WeaponWeld")
