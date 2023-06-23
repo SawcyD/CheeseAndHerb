@@ -5,7 +5,7 @@ local UIFolder = ReplicatedStorage.Assets.UI
 local Player = game.Players.LocalPlayer
 local PlayerGui = Player.PlayerGui
 local ScreenGui = PlayerGui.ScreenGui
-local Frame = ScreenGui.Frame1
+local Frame = ScreenGui.InventoryFrame
 local Inventory = Frame.Inventory
 local SlotTemplate = UIFolder.Slot
 local IngredientModels = ReplicatedStorage.Assets.Ingredients:GetChildren()
@@ -53,7 +53,7 @@ local function createInventorySlot(ingredientName, stackAmount)
     local viewportImage = slot.ViewportFrame
 
     nameLabel.Text = ingredientName
-    stackLabel.Text = "x" .. tostring(ingredientName.Amount)
+    stackLabel.Text = "x" .. tostring(ingredientName.stackAmount)
     local ingredientModel = getIngredientModel(ingredientName)
     if ingredientModel then
         local modelCopy = ingredientModel:Clone()

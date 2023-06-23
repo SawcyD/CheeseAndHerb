@@ -3,6 +3,7 @@ local UserInputService = game:GetService("UserInputService")
 local DataService = require(script.Parent.DataService)
 local CombatService = require(script.Parent.CombatService)
 
+
 local EasyNetwork = require(game:GetService("ReplicatedStorage").Libs.Network)
 local Player = game.Players:GetPlayers()[1] or game.Players.PlayerAdded:Wait()
 
@@ -44,55 +45,50 @@ local function storeEquippedWeapon(weaponName)
 end
 
 function WeaponManager:EquipWeapon(weaponName)
-	local values = {
-		Equipped = true -- Set the equipped state to true
-	}
+    local values = {
+        Equipped = true -- Set the equipped state to true
+    }
 
-	DataService:GetReplica(Player):andThen(function(replica)
-		if replica.Data.EquippedWeapon.Equipped == true then
-			WeaponManager:UnequipWeapon()
-		end
-		replica:SetValues("EquippedWeapon", values)
+    DataService:GetReplica(Player):andThen(function(replica)
+        if replica.Data.EquippedWeapon.Equipped == true then
+            WeaponManager:UnequipWeapon()
+        end
+        replica:SetValues("EquippedWeapon", values)
 
-		print(replica.Data.EquippedWeapon.Equipped)
+        print(replica.Data.EquippedWeapon.Equipped)
 
-		-- Weld the weapon to the player's right hand
-		local weaponModel = getWeaponModel(weaponName)
-		if weaponModel then
-			local character = Player.Character
-			local humanoid = character:WaitForChild("Humanoid")
+        -- Weld the weapon to the player's right hand
+        local weaponModel = getWeaponModel(weaponName)
+        if weaponModel then
+            local character = Player.Character
 
-			local weaponModelClone = weaponModel:Clone()
+            local handle = weaponModel:WaitForChild("Handle")
 
-			local handle = weaponModelClone:WaitForChild("Handle")
+            -- Attach the weapon to the RightGripAttachment
+            local rightGripAttachment = character:WaitForChild("RightHand"):WaitForChild("RightGripAttachment")
 
-			-- Attach the weapon to the RightGripAttachment
-			local rightGripAttachment = character:WaitForChild("RightHand"):WaitForChild("RightGripAttachment")
+            handle.CFrame = rightGripAttachment.WorldCFrame
+            handle.Parent = character
 
+            -- Find and update the existing WeldConstraint or create a new one
+            local weld = handle:FindFirstChildOfClass("WeldConstraint")
+            if weld then
+                weld.Part0 = handle
+                weld.Part1 = rightGripAttachment.Parent
+            else
+                weld = Instance.new("WeldConstraint")
+                weld.Name = "WeaponWeld"
+                weld.Part0 = handle
+                weld.Part1 = rightGripAttachment.Parent
+                weld.Parent = handle
+            end
+        else
+            warn("Weapon model not found for weapon:", weaponName)
+        end
+    end)
 
-			weaponModel:PivotTo(character:WaitForChild("RightHand"))
-			local part1 = rightGripAttachment.Parent
-			while not part1:IsA("BasePart") do
-				part1 = part1.Parent
-			end
-
-			handle.CFrame = rightGripAttachment.WorldCFrame
-			handle.Parent = character:WaitForChild("RightHand")
-
-			-- Create a WeldConstraint between the weapon handle and the RightGripAttachment
-			local weld = Instance.new("WeldConstraint")
-			weld.Part0 = handle
-			weld.Part1 = part1
-			weld.Name = "WeaponWeld"
-			weld.Parent = handle
-		else
-			warn("Weapon model not found for weapon:", weaponName)
-		end
-	end)
-
-	equippedWeapon = weaponName
+    equippedWeapon = weaponName
 end
-
 
 
 function WeaponManager:UnequipWeapon(weaponName)
@@ -162,17 +158,18 @@ function WeaponManager:OnEquipButtonPress()
 end
 
 function WeaponManager:OnUnequipButtonPress()
-	DataService:GetReplica(Player):andThen(function(replica)
-		local weaponName = replica.Data.EquippedWeapon.Name
+    DataService:GetReplica(Player):andThen(function(replica)
+        local weaponName = replica.Data.EquippedWeapon.Name
 
-		WeaponManager:UnequipWeapon(weaponName)
+        WeaponManager:UnequipWeapon(weaponName)
 
-		-- Start the cooldown
-		canEquip = false
-		task.wait(equipCooldown)
-		canEquip = true
-	end)
+        -- Start the cooldown
+        canEquip = false
+        task.wait(equipCooldown)
+        canEquip = true
+    end)
 end
+
 
 EasyNetwork:BindEvents({
     WeaponEquipping = function(client)

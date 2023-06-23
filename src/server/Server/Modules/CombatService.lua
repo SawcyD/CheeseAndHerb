@@ -91,7 +91,7 @@ local HitEffectPrefab = ReplicatedStorage.Assets.Prefabs.Hit-- Replace with your
 local function GetEquippedWeaponType(character)
     DataService:GetReplica(Player):andThen(function(replica)
         if replica then
-            local equippedWeaponType = replica.Data.EquippedWeapon.WeaponTye
+            local equippedWeaponType = replica.Data.EquippedWeapon.WeaponType
             if equippedWeaponType then
                 return equippedWeaponType
             end
@@ -304,9 +304,9 @@ function CombatService:GetTargetInHitbox(hitbox)
     return target
 end
 
+
 function CombatService:PlayAttackAnimation(character, attackType)
     DataService:GetReplica(Player):andThen(function(replica)
-    
         local humanoid = character:FindFirstChildOfClass("Humanoid")
         if not humanoid then
             return
@@ -317,7 +317,12 @@ function CombatService:PlayAttackAnimation(character, attackType)
         local holdDuration
 
         if attackType == "LightAttack" then
-            animationId = comboAnimations[weaponType].Attacks.LightAttack.AnimationId
+            local lightAttackAnimations = comboAnimations[weaponType].Attacks.LightAttack.AnimationIds
+            if lightAttackAnimations and #lightAttackAnimations > 0 then
+                -- Select a random animation ID
+                local randomIndex = math.random(1, #lightAttackAnimations)
+                animationId = lightAttackAnimations[randomIndex]
+            end
         elseif attackType == "HeavyAttack" then
             animationId = comboAnimations[weaponType].Attacks.HeavyAttack.AnimationId
             holdDuration = comboAnimations[weaponType].Attacks.HeavyAttack.holdDuration
@@ -337,13 +342,6 @@ function CombatService:PlayAttackAnimation(character, attackType)
         end
     end)
 end
-
-
-
-
-
-
-
 
 function CombatService:GetSkillDataFromWeaponsData(skillName)
     if weaponsData[skillName] then

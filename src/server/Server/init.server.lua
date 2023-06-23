@@ -8,7 +8,13 @@ local BagService = require(ServerScriptService.Server.Modules.BagService)
 local TestService = require(ServerScriptService.Server.Modules.TestService)
 local EnemyService = require(ServerScriptService.Server.Modules.EnemyService)
 
+local Cmdr = require(ServerScriptService.Server.Libs.Cmdr)
+
 local WeaponService = require(ServerScriptService.Server.Modules.WeaponService)
+
+local CommandsFolder = ServerScriptService.Server.Modules.Cmdr.Commands
+local TypesFolder = ServerScriptService.Server.Modules.Cmdr.Types
+local HooksFolder = ServerScriptService.Server.Modules.Cmdr.Hooks
 
 DataService:Init()
 task.wait(5)
@@ -21,19 +27,21 @@ ZoneService.Init()
 BagService:Init()
 EnemyService:SetUp()
 
+Cmdr:RegisterDefaultCommands()
+Cmdr:RegisterCommandsIn(CommandsFolder)
+Cmdr:RegisterTypesIn(TypesFolder)
+Cmdr:RegisterHooksIn(HooksFolder)
 
--- Test adding a bag
-TestService:testing()
--- Test adding ingredients
-CraftingService:AddIngredient(player, "Herb", 5)
-CraftingService:AddIngredient(player, "Mushroom", 3)
-CraftingService:AddIngredient(player, "Water", 1)
+
+
+
+
 
 -- Test adding a recipe
-CraftingService:AddRecipe(player, "HealingPill")
+CraftingService:AddRecipe("HealingPill")
 
 -- Test crafting a pill
-CraftingService:CraftPill(player, "HealingPill")
+CraftingService:CraftPill("HealingPill")
 
 
 UserInputService.InputBegan:Connect(function(input, gpe)

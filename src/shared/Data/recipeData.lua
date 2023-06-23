@@ -4,11 +4,11 @@ local recipeData = {
         DisplayName = "Healing Pill",
         Description = "A pill that restores health.",
         Ingredients = {
-            { Name = "Herb", Amount = 5 },
-            { Name = "Mushroom", Amount = 2 },
-            { Name = "Water", Amount = 1 },
+            { Name = "GinsengRoot", Amount = 5 },
+            { Name = "TurmericPowder", Amount = 2 },
+            { Name = "LicoriceRoot", Amount = 1 },
         },
-        SkillRequirement = 10,
+        SkillRequirement = 0,
         CraftingTime = 5, -- Crafting time in seconds
     },
     EnergyPill = {

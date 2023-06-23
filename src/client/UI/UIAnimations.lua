@@ -6,9 +6,9 @@ local TweenService = game:GetService("TweenService")
 local UIAnimations = {}
 
 UIAnimations.buttonToFrameMap = {
-    Button1 = "Frame1", -- Mapping: Button1 corresponds to Frame1
-    Button2 = "Frame2", -- Mapping: Button2 corresponds to Frame2
-    -- Add more button-frame mappings as needed
+    InventoryButton = "InventoryFrame", -- Mapping: Button1 corresponds to Frame1
+    Button2 = "Frame2",
+
 }
 
 UIAnimations.labelOriginalValues = {
@@ -37,7 +37,7 @@ function UIAnimations.Init()
     for _, button in ipairs(buttons) do
         if button:IsA("TextButton") or button:IsA("ImageButton") then
             button.MouseEnter:Connect(function()
-                UIAnimations.HandleButtonHover(button, 1.05)
+                UIAnimations.HandleButtonHover(button, 1.3)
             end)
             button.MouseLeave:Connect(function()
                 UIAnimations.HandleButtonHover(button, 1)
@@ -155,8 +155,11 @@ end
 function UIAnimations.HandleButtonClick(button)
     -- Check if the button is associated with a frame
     local frameName = UIAnimations.buttonToFrameMap[button.Name]
+    print(frameName)
     if frameName then
+        -- Find the frame
         local frame = screenGui:FindFirstChild(frameName)
+        print(frame.Name)
         if frame then
             -- Toggle the visibility of the frame
             frame.Visible = not frame.Visible
