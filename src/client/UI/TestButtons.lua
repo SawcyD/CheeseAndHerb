@@ -1,7 +1,7 @@
 local Players = game:GetService("Players")
 local EasyNetwork = require(game:GetService("ReplicatedStorage").Libs.Network)
 
-local Player = Players.LocalPlayer
+local Player = Players.LocalPlayer or Players.PlayerAdded:Wait()
 local PlayerGui = Player.PlayerGui
 local ScreenGui = PlayerGui.ScreenGui
 local HUD = ScreenGui.HUD
@@ -9,6 +9,7 @@ local TestButtonsFrame = HUD.TestButtons
 
 local AddCoinsButton = TestButtonsFrame.AddCoinsButton
 local AddMysticShardsButton = TestButtonsFrame.AddShardsButton
+local AddLevelButton = TestButtonsFrame.AddLevelButton
 
 local AddCoinsTextBox = AddCoinsButton.AmountTextBox
 local AddMysticShardsTextBox = AddMysticShardsButton.AmountTextBox
@@ -28,22 +29,16 @@ end
 function TestButtons.Init()
     AddCoinsButton.MouseButton1Click:Connect(function()
         local amount = GetNumberFromTextBox(AddCoinsTextBox)
-        
-        if amount and amount > 0 then
-            EasyNetwork:InvokeServer("AddTestCoins", amount)
-        else
-            print("Invalid amount!")
-        end
+        EasyNetwork:FireServer("AddTestCoins", Player, amount)
+    end)
+
+    AddLevelButton.MouseButton1Click:Connect(function()
+        EasyNetwork:FireServer("LevelUP")
     end)
     
     AddMysticShardsButton.MouseButton1Click:Connect(function()
         local amount = GetNumberFromTextBox(AddMysticShardsTextBox)
-        
-        if amount and amount > 0 then
-            EasyNetwork:InvokeServer("AddTestMysticShards", amount)
-        else
-            print("Invalid amount!")
-        end
+        EasyNetwork:FireServer("AddTestMysticShards", Player,  amount)
     end)
 end
 

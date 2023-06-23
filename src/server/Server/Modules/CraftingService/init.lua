@@ -29,10 +29,8 @@ local function hasEnoughIngredients(recipe)
 
         for _, ingredient in ipairs(recipe.Ingredients) do
             local requiredAmount = ingredient.Amount
-            local availableAmount = inventory[ingredient.Name] or 0
+            local availableAmount = inventory[ingredient.Name].Amount or 0
 
-            -- Debug statement: print out the required and available amounts for each ingredient
-            print("Ingredient: ".. ingredient.Name ..", Required: ".. requiredAmount ..", Available: ".. availableAmount)
 
             if availableAmount < requiredAmount then
                 return false

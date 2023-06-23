@@ -5,27 +5,29 @@ local Player = game.Players:GetPlayers()[1] or game.Players.PlayerAdded:Wait()
 
 local Test = {}
 
-function Test:AddCoins(amount)
-    local PPLayer = Player
-    DataService:GetReplica(PPLayer):andThen(function(replica)
-        replica:SetValue("HerbalCoins", replica.Data.HerbalCoins + amount)
+function Test:AddCoins(player, amount)
+
+    DataService:GetReplica(player):andThen(function(replica)
+        local coins = replica.Data.HerbalCoins or 0
+        replica:SetValue("HerbalCoins", coins + amount)
     end)
 end
 -- functions to add MysticShards
-function Test:AddMysticShards(amount)
-    local PPLayer = Player
-    DataService:GetReplica(PPLayer):andThen(function(replica)
-        replica:SetValue("MysticShards", replica.Data.MysticShards + amount)
+function Test:AddMysticShards(player, amount)
+
+    DataService:GetReplica(player):andThen(function(replica)
+        local shards = replica.Data.MysticShards or 0
+        replica:SetValue("MysticShards", shards + amount)
     end)
 end
 
 
-EasyNetwork:BindFunctions({
-    AddTestCoins = function(amount)
-        Test:AddCoins(amount)
+EasyNetwork:BindEvents({
+    AddTestCoins = function(client, player, amount)
+        Test:AddCoins(player, amount)
     end,
-    AddTestMysticShards = function(amount)
-        Test:AddMysticShards(amount)
+    AddTestMysticShards = function(client, player, amount)
+        Test:AddMysticShards(player, amount)
     end
     
 })

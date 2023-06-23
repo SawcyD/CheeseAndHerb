@@ -18,6 +18,7 @@ local playerData = {
     RobuxSpent = 0,
 
     Exp = 0,
+    ExpGained = 0,
     Level = 0,
     HerbalCoins = 100,
     MysticShards = 0,
@@ -46,9 +47,10 @@ local playerData = {
     },
 
     -- Stats
-    Damage = 100,
-    Health = 100,
-    Stamina = 100,
+    StatPoints = 3, -- The number of available stat points for the player to allocate
+    Damage = 0, -- increases the damage of the player by .1% per point
+    Health = 0, -- increases the health of the player by .1% per point
+    Stamina = 0, -- increases the stamina of the player by .1% per point
     Blocking = false,
 
     BlockDamageReduction = .4,
