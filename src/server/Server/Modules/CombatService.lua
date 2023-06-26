@@ -112,7 +112,7 @@ end
 
 -- Implement the logic to retrieve the skill data from the weaponsData table
 
-function CombatService:DealDamage(target, hitbox)
+function CombatService:DealDamage(weaponModel,target, hitbox)
     DataService:GetReplica(Player):andThen(function(replica)
         local weapon = weaponsData[replica.Data.EquippedWeapon.Name]
         local damage = weapon.damage + replica.Data.Damage
@@ -313,13 +313,11 @@ function CombatService:PlayAttackAnimation(character, attackType)
         end
         
         local weaponType = replica.Data.EquippedWeapon.WeaponType
+        local equipped = replica.Data.EquippedWeapon.Equipped  -- Check if weapon is equipped
         local animationId
         local holdDuration
-        local isAnimationPlaying = false -- Added variable to track animation state
 
-        if humanoid:GetState() ~= Enum.HumanoidStateType.Running then
-            -- Only play attack animation if the humanoid is not running
-
+        if equipped then  -- Only continue if the weapon is equipped
             if attackType == "LightAttack" then
                 local lightAttackAnimations = comboAnimations[weaponType].Attacks.LightAttack.AnimationIds
                 if lightAttackAnimations and #lightAttackAnimations > 0 then
@@ -338,37 +336,27 @@ function CombatService:PlayAttackAnimation(character, attackType)
 
                 local loadedAnimation = humanoid:LoadAnimation(animation)
                 loadedAnimation:Play()
-                isAnimationPlaying = true -- Set the animation state to true
-
-                loadedAnimation.Stopped:Wait()
-                isAnimationPlaying = false -- Set the animation state to false when animation stops
             end
 
             if holdDuration then
                 -- Add a hold effect for heavy attacks
                 task.wait(holdDuration)
             end
-        end
 
-        -- Play the idle animation if the player is not moving or attacking
-        if attackType == nil and humanoid.MoveDirection.Magnitude == 0 then
-            local idleAnimationId = comboAnimations[weaponType].Idle.AnimationId
-            if idleAnimationId then
-                local idleAnimation = Instance.new("Animation")
-                idleAnimation.AnimationId = idleAnimationId
+            -- Play the idle animation if the player is not moving or attacking
+            if attackType == nil and humanoid.MoveDirection.Magnitude == 0 then
+                local idleAnimationId = comboAnimations[weaponType].Idle.AnimationId
+                if idleAnimationId then
+                    local idleAnimation = Instance.new("Animation")
+                    idleAnimation.AnimationId = idleAnimationId
 
-                local loadedIdleAnimation = humanoid:LoadAnimation(idleAnimation)
-                loadedIdleAnimation:Play()
-                isAnimationPlaying = true -- Set the animation state to true
+                    local loadedIdleAnimation = humanoid:LoadAnimation(idleAnimation)
+                    loadedIdleAnimation:Play()
+                end
             end
         end
-
-        -- Do something with the animation state (isAnimationPlaying)
-        -- You can access this variable outside the function to check if an animation is playing or not.
-        print("Animation state:", isAnimationPlaying)
     end)
 end
-
 
 
 function CombatService:GetSkillDataFromWeaponsData(skillName)
@@ -394,8 +382,8 @@ function CombatService:OnComboInput(player, input)
     local target = self:GetTargetInHitbox(hitbox)
 
     -- Deal damage to the target
-    if target then
-        self:DealDamage(character, target, hitbox)
+    if target and target ~= character then
+        self:DealDamage(character.BladeModel, target)
     end
 end
 
@@ -414,11 +402,6 @@ function CombatService:AddToCombo(attackType)
 end
 
 function comboSystem:PerformComboAction()
-    -- Implement the logic to perform the desired action based on the current combo
-    -- For example, you can check the current combo against predefined combo sequences
-    -- and execute specific actions when a valid combo sequence is matched.
-
-    -- Here's an example of a predefined combo sequence
     local comboSequence = { "LightAttack", "LightAttack", "HeavyAttack" }
 
     -- Check if the current combo matches the predefined sequence
@@ -442,7 +425,6 @@ function comboSystem:PerformComboAction()
 end
 
 function CombatService:OnSkillActivation(player, skillName)
-    -- Handle skill activation logic here
     -- Get the skill data from weaponsData table based on the skillName
     local skillData = self:GetSkillDataFromWeaponsData(skillName)
 

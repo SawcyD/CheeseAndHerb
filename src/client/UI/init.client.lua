@@ -3,6 +3,7 @@ local ReplicaController = require(game:GetService("ReplicatedStorage").Util.Repl
 local Inventory = require(script.Inventory)
 local Currencies = require(script.Currencies)
 local TestButtons = require(script.TestButtons)
+local PlayerStats = require(script.PlayerStats)
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
@@ -33,3 +34,4 @@ UIAnimations.Init()
 Inventory.Init()
 Currencies.Init()
 TestButtons.Init()
+PlayerStats.Init()

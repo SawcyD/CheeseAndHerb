@@ -29,39 +29,70 @@ end
 
 -- Helper function to create a health bar GUI for an enemy model
 local function createHealthBarGUI(model)
-    local healthBarGUI = Instance.new("BillboardGui")
+    local healthBarGUI = Instance.new("ScreenGui")
     healthBarGUI.Name = "HealthBarGUI"
-    healthBarGUI.AlwaysOnTop = true
-    healthBarGUI.Size = UDim2.new(4, 0, 0.2, 0)
-    healthBarGUI.StudsOffsetWorldSpace = Vector3.new(0, 2, 0)
-    healthBarGUI.Adornee = model
+    healthBarGUI.IgnoreGuiInset = true
+    healthBarGUI.Enabled = true
+    healthBarGUI.DisplayOrder = 10
+    healthBarGUI.ResetOnSpawn = false
 
-    local healthBarBackground = Instance.new("Frame")
-    healthBarBackground.Name = "Background"
-    healthBarBackground.BackgroundTransparency = 0.5
-    healthBarBackground.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-    healthBarBackground.BorderSizePixel = 0
-    healthBarBackground.Size = UDim2.new(1, 0, 1, 0)
-    healthBarBackground.Parent = healthBarGUI
+    local container = Instance.new("Frame")
+    container.Name = "Container"
+    container.BackgroundTransparency = 1
+    container.Size = UDim2.new(1, 0, 0, 30)
+    container.Position = UDim2.new(0, 0, 0, -30)
+    container.Parent = healthBarGUI
 
-    local healthBarFill = Instance.new("Frame")
-    healthBarFill.Name = "Fill"
-    healthBarFill.BackgroundTransparency = 0
-    healthBarFill.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
-    healthBarFill.BorderSizePixel = 0
-    healthBarFill.Size = UDim2.new(1, 0, 1, 0)
-    healthBarFill.Parent = healthBarBackground
+    local background = Instance.new("Frame")
+    background.Name = "Background"
+    background.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    background.BackgroundTransparency = 0.8
+    background.BorderSizePixel = 0
+    background.Size = UDim2.new(1, 0, 1, 0)
+    background.Parent = container
+
+    local fill = Instance.new("Frame")
+    fill.Name = "Fill"
+    fill.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    fill.BorderSizePixel = 0
+    fill.Size = UDim2.new(1, 0, 1, 0)
+    fill.Parent = background
+
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Name = "NameLabel"
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.Font = Enum.Font.SourceSansBold
+    nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    nameLabel.TextSize = 14
+    nameLabel.TextWrapped = true
+    nameLabel.Size = UDim2.new(1, 0, 0.5, 0)
+    nameLabel.Position = UDim2.new(0, 5, 0, 0)
+    nameLabel.Parent = container
+
+    local healthLabel = Instance.new("TextLabel")
+    healthLabel.Name = "HealthLabel"
+    healthLabel.BackgroundTransparency = 1
+    healthLabel.Font = Enum.Font.SourceSansBold
+    healthLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    healthLabel.TextSize = 14
+    healthLabel.TextWrapped = true
+    healthLabel.Size = UDim2.new(1, -10, 0.5, 0)
+    healthLabel.Position = UDim2.new(0, 5, 0.5, 0)
+    healthLabel.TextXAlignment = Enum.TextXAlignment.Right
+    healthLabel.Parent = container
 
     healthBarGUI.Parent = model
 end
-
 -- Helper function to update the health bar GUI for an enemy model
 local function updateHealthBarGUI(model, healthPercent)
     local healthBarGUI = getHealthBarGUI(model)
     if healthBarGUI then
-        local healthBarFill = healthBarGUI:FindFirstChild("Background"):FindFirstChild("Fill")
-        if healthBarFill then
-            healthBarFill.Size = UDim2.new(healthPercent, 0, 1, 0)
+        local container = healthBarGUI:FindFirstChild("Container")
+        local fill = container:FindFirstChild("Background"):FindFirstChild("Fill")
+        local healthLabel = container:FindFirstChild("HealthLabel")
+        if container and fill and healthLabel then
+            fill.Size = UDim2.new(healthPercent, 0, 1, 0)
+            healthLabel.Text = string.format("%.0f / %.0f", model.Humanoid.Health, model.Humanoid.MaxHealth)
         end
     end
 end

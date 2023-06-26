@@ -95,7 +95,7 @@ function module:AddIngredientToInventory(ingredientName, amountToAdd)
                 stacksToAdd = remainingAmount
             end
 
-            ingredientEntry.Amount = ingredientEntry.Amount + stacksToAdd * maxStackAmount
+            ingredientEntry.Amount = ingredientEntry.Amount + stacksToAdd 
         else
             
             playerInventory[ingredientName] = {Amount = amountToAdd}

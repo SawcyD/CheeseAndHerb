@@ -48,10 +48,15 @@ local playerData = {
 
     -- Stats
     StatPoints = 3, -- The number of available stat points for the player to allocate
-    Damage = 0, -- increases the damage of the player by .1% per point
-    Health = 0, -- increases the health of the player by .1% per point
-    Stamina = 0, -- increases the stamina of the player by .1% per point
+    Stats = {
+        Damage = 0, -- increases the damage of the player by .1% per point
+        Health = 0, -- increases the health of the player by .1% per point
+        Stamina = 0, -- increases the stamina of the player by .1% per point
+        Critical = 0, -- increases the critical chance of the player by .1% per point
+    },
+    
     Blocking = false,
+
 
     BlockDamageReduction = .4,
 

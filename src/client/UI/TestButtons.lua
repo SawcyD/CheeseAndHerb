@@ -18,7 +18,7 @@ local TestButtons = {}
 
 local function GetNumberFromTextBox(textBox)
     local text = textBox.Text
-    local number = tonumber(text)
+    local number = tonumber(text) or 200 -- if there is no number then it will be 200
     
     if number then
         return number

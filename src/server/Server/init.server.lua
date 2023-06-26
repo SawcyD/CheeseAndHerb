@@ -33,7 +33,7 @@ Cmdr:RegisterTypesIn(TypesFolder)
 Cmdr:RegisterHooksIn(HooksFolder)
 
 
-
+WeaponService:Init()
 
 
 
@@ -44,9 +44,3 @@ CraftingService:AddRecipe("HealingPill")
 CraftingService:CraftPill("HealingPill")
 
 
-UserInputService.InputBegan:Connect(function(input, gpe)
-    if input.KeyCode == Enum.KeyCode.E then
-        print("E : From Server")
-        WeaponService:EquipWeapon(player)
-    end
-end)

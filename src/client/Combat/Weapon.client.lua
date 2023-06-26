@@ -12,6 +12,8 @@ ReplicaController.ReplicaOfClassCreated("PlayerProfile", function(replica)
 
         elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
             EasyNetwork:FireServer("PlayHeavyAttack", input)
+        elseif input.KeyCode == Enum.KeyCode.F then
+            EasyNetwork:FireServer("PlayBlock", input)
         end
         
         

@@ -8,6 +8,7 @@ local UIAnimations = {}
 UIAnimations.buttonToFrameMap = {
     InventoryButton = "InventoryFrame", -- Mapping: Button1 corresponds to Frame1
     Button2 = "Frame2",
+    StatsButton = "StatsFrame",
 
 }
 
@@ -37,11 +38,11 @@ function UIAnimations.Init()
     for _, button in ipairs(buttons) do
         if button:IsA("TextButton") or button:IsA("ImageButton") then
             button.MouseEnter:Connect(function()
-                -- UIAnimations.HandleButtonHover(button, 1.3)
+                UIAnimations.HandleButtonHover(button, 1.3)
             end)
             button.MouseLeave:Connect(function()
-                -- UIAnimations.HandleButtonHover(button, 1)
-                -- UIAnimations.hideTooltip(button)
+                UIAnimations.HandleButtonHover(button, 1)
+                UIAnimations.hideTooltip(button)
             end)
             button.MouseButton1Click:Connect(function()
                 UIAnimations.PlayButtonSound("rbxassetid://5393362166")

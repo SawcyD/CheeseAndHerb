@@ -98,7 +98,6 @@ local function spawnIngredient(ingredientName, position, orientation, parent)
     textLabel.Parent = billboardGui
 
     ingredientInstances[ingredientName] = ingredientCount + 1
-    print("Ingredient: " .. ingredientName .. " spawned successfully.")
     
 
     -- Perform fade-in animation

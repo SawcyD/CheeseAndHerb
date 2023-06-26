@@ -1,5 +1,6 @@
 {
     "robloxLsp.diagnostics.disable": [
-        "unused-function"
+        "unused-function",
+        "unused-local"
     ]
 }

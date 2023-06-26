@@ -27,14 +27,22 @@ local function getLeaderStats(player)
 	leaderstats.Parent = player
 
 	local HerbalCoins = Instance.new("NumberValue")
-	HerbalCoins.Name = "HerbalCoins"
+	HerbalCoins.Name = "Coins"
 	HerbalCoins.Value = profile.Data.HerbalCoins
 	HerbalCoins.Parent = leaderstats
 
 	local MysticShards = Instance.new("NumberValue")
-	MysticShards.Name = "MysticShards"
-	MysticShards.Value = profile.Data.HerbalCoins
+	MysticShards.Name = "Shards"
+	MysticShards.Value = profile.Data.MysticShards
 	MysticShards.Parent = leaderstats
+
+	local Level = Instance.new("NumberValue")
+	Level.Name = "Level"
+	Level.Value = profile.Data.Level
+	Level.Parent = leaderstats
+
+	-- each time the vales changes the leaderstats will update
+	
 
 end
 
@@ -94,6 +102,7 @@ local function PlayerAdded(Player)
 
 			Replicas[Player] = Replica
 			warn(Player.Name.. "'s profile has been loaded. ".."("..string.sub(tostring(tick()-StartTime),1,5)..")")
+
 		else
 			Profile:Release()
 		end
