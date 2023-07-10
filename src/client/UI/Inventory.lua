@@ -14,6 +14,8 @@ local MaxBagStackText = Frame.Stack
 
 local ReplicaController = require(ReplicatedStorage.Util.ReplicaController)
 
+local inventory = {} -- New inventory table to store ingredient data
+
 local function getIngredientModel(ingredientName)
     for _, model in ipairs(IngredientModels) do
         if model.Name == ingredientName then
@@ -23,17 +25,6 @@ local function getIngredientModel(ingredientName)
     return nil
 end
 
-ReplicaController.ReplicaOfClassCreated("PlayerProfile", function(replica)
-    local replicaData = replica.Data
-    local ingredientsBag = replicaData.Inventory.Ingredients.IngredientsBag
-    local bagSlots = replicaData.Inventory.Ingredients.BagSlots
-    local bagStackAmountMax = replicaData.Inventory.Ingredients.BagStackAmountMax
-    warn("--- Client ---")
-    print(ingredientsBag)
-    print(bagSlots)
-    print(bagStackAmountMax)
-    warn("--- Client ---")
-end)
 
 
 local function clearInventoryUI()
@@ -53,7 +44,7 @@ local function createInventorySlot(ingredientName, stackAmount)
     local viewportImage = slot.ViewportFrame
 
     nameLabel.Text = ingredientName
-    stackLabel.Text = "x" .. tostring(ingredientName.stackAmount)
+    stackLabel.Text = "x" .. tostring(stackAmount) -- Update to use stackAmount parameter
     local ingredientModel = getIngredientModel(ingredientName)
     if ingredientModel then
         local modelCopy = ingredientModel:Clone()
@@ -75,10 +66,10 @@ local function updateInventoryUI(inventory)
         if slot then
             -- Update the stack amount in the existing slot
             local stackLabel = slot.Amount
-            stackLabel.Text = "x" .. tostring(ingredientName.Amount)
+            stackLabel.Text = "x" .. tostring(stackAmount)
         else
             -- Create a new slot for the ingredient
-            createInventorySlot(ingredientName, ingredientName.Amount)
+            createInventorySlot(ingredientName, stackAmount)
         end
     end
 end
@@ -91,30 +82,50 @@ local function updateMaxBagStackText(maxStack)
     MaxBagStackText.Text = "Max Bag Stack: " .. maxStack
 end
 
+local function refreshInventory()
+    ReplicaController.ReplicaOfClassCreated("PlayerProfile", function(replica)
+        if replica then
+            local replicaData = replica.Data
+            local ingredientsBag = replicaData.Inventory.Ingredients.IngredientsBag
+            local bagSlots = replicaData.Inventory.Ingredients.BagSlots
+            local bagStackAmountMax = replicaData.Inventory.Ingredients.BagStackAmountMax
+
+            updateInventoryUI(ingredientsBag)
+            updateMaxBagSlotsText(bagSlots)
+            updateMaxBagStackText(bagStackAmountMax)
+        end
+    end)
+end
+
 local function init()
     ReplicaController.ReplicaOfClassCreated("PlayerProfile", function(replica)
-        local replicaData = replica.Data
-        local ingredientsBag = replicaData.Inventory.Ingredients.IngredientsBag
-        local bagSlots = replicaData.Inventory.Ingredients.BagSlots
-        local bagStackAmountMax = replicaData.Inventory.Ingredients.BagStackAmountMax
-
-        updateInventoryUI(ingredientsBag)
-        updateMaxBagSlotsText(bagSlots)
-        updateMaxBagStackText(bagStackAmountMax)
+        refreshInventory()
 
         replica:ListenToChange({"Inventory", "Ingredients", "IngredientsBag"}, function()
-            updateInventoryUI(replicaData.Inventory.Ingredients.IngredientsBag)
+            refreshInventory()
         end)
 
         replica:ListenToChange({"Inventory", "Ingredients", "BagSlots"}, function()
-            updateMaxBagSlotsText(replicaData.Inventory.Ingredients.BagSlots)
+            refreshInventory()
         end)
 
         replica:ListenToChange({"Inventory", "Ingredients", "BagStackAmountMax"}, function()
-            updateMaxBagStackText(replicaData.Inventory.Ingredients.BagStackAmountMax)
+            refreshInventory()
         end)
     end)
 end
+
+ReplicaController.ReplicaOfClassCreated("PlayerProfile", function(replica)
+    local replicaData = replica.Data
+    local ingredientsBag = replicaData.Inventory.Ingredients.IngredientsBag
+    local bagSlots = replicaData.Inventory.Ingredients.BagSlots
+    local bagStackAmountMax = replicaData.Inventory.Ingredients.BagStackAmountMax
+
+    -- Update the inventory UI
+    updateInventoryUI(ingredientsBag)
+    updateMaxBagSlotsText(bagSlots)
+    updateMaxBagStackText(bagStackAmountMax)
+end)
 
 local ClientInventoryModule = {}
 ClientInventoryModule.Init = init

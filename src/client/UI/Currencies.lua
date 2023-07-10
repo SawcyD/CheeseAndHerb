@@ -1,7 +1,7 @@
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 
-local tweenInfo = TweenInfo.new(0.234)
+local tweenInfo = TweenInfo.new(0.299)
 
 local labelTweenMap = {}
 

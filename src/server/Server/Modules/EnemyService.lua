@@ -4,6 +4,7 @@ local CollectionService = game:GetService("CollectionService")
 local DataFolder = ReplicatedStorage.Data
 
 local zonesData = require(DataFolder.zonesData)
+local enemiesData = require(DataFolder.enemiesData)
 local EnemyService = {}
 
 local enemyModels = {} -- Stores the enemy models
@@ -27,21 +28,27 @@ local function getHealthBarGUI(model)
     return model:FindFirstChild("HealthBarGUI")
 end
 
+local function getEnemyData(enemyName)
+    return enemiesData[enemyName]
+end
+
+-- Helper function to create a health bar GUI for an enemy model
 -- Helper function to create a health bar GUI for an enemy model
 local function createHealthBarGUI(model)
-    local healthBarGUI = Instance.new("ScreenGui")
-    healthBarGUI.Name = "HealthBarGUI"
-    healthBarGUI.IgnoreGuiInset = true
-    healthBarGUI.Enabled = true
-    healthBarGUI.DisplayOrder = 10
-    healthBarGUI.ResetOnSpawn = false
+    local billboardGui = Instance.new("BillboardGui")
+    billboardGui.Name = "HealthBarGUI"
+    billboardGui.Adornee = model.PrimaryPart
+    billboardGui.Size = UDim2.new(2, 0, 2, 0)
+    billboardGui.StudsOffset = Vector3.new(0, 2, 0)
+    billboardGui.AlwaysOnTop = true
+    billboardGui.MaxDistance = 100
 
-    local container = Instance.new("Frame")
-    container.Name = "Container"
-    container.BackgroundTransparency = 1
-    container.Size = UDim2.new(1, 0, 0, 30)
-    container.Position = UDim2.new(0, 0, 0, -30)
-    container.Parent = healthBarGUI
+    local frame = Instance.new("Frame")
+    frame.Name = "Container"
+    frame.BackgroundTransparency = 1
+    frame.Size = UDim2.new(1, 0, 0.2, 0)
+    frame.Position = UDim2.new(0, 0, 0, -30)
+    frame.Parent = billboardGui
 
     local background = Instance.new("Frame")
     background.Name = "Background"
@@ -49,7 +56,7 @@ local function createHealthBarGUI(model)
     background.BackgroundTransparency = 0.8
     background.BorderSizePixel = 0
     background.Size = UDim2.new(1, 0, 1, 0)
-    background.Parent = container
+    background.Parent = frame
 
     local fill = Instance.new("Frame")
     fill.Name = "Fill"
@@ -67,7 +74,7 @@ local function createHealthBarGUI(model)
     nameLabel.TextWrapped = true
     nameLabel.Size = UDim2.new(1, 0, 0.5, 0)
     nameLabel.Position = UDim2.new(0, 5, 0, 0)
-    nameLabel.Parent = container
+    nameLabel.Parent = frame
 
     local healthLabel = Instance.new("TextLabel")
     healthLabel.Name = "HealthLabel"
@@ -79,10 +86,11 @@ local function createHealthBarGUI(model)
     healthLabel.Size = UDim2.new(1, -10, 0.5, 0)
     healthLabel.Position = UDim2.new(0, 5, 0.5, 0)
     healthLabel.TextXAlignment = Enum.TextXAlignment.Right
-    healthLabel.Parent = container
+    healthLabel.Parent = frame
 
-    healthBarGUI.Parent = model
+    billboardGui.Parent = model
 end
+
 -- Helper function to update the health bar GUI for an enemy model
 local function updateHealthBarGUI(model, healthPercent)
     local healthBarGUI = getHealthBarGUI(model)
@@ -127,6 +135,7 @@ local function handleEnemyBlock(enemyModel)
     end
 end
 
+
 -- Helper function to handle enemy movement logic
 local function handleEnemyMovement(enemyModel, playerCharacter)
     local humanoid = getHumanoid(enemyModel)
@@ -164,7 +173,6 @@ local function updateEnemyBehavior(enemyModel, playerCharacter)
     end
 end
 
--- Helper function to spawn an enemy with a given CFrame
 local function spawnEnemy(enemyName, cframe, parent)
     local enemyModel = ReplicatedStorage.Assets.Enemies:FindFirstChild(enemyName)
     if not enemyModel then
@@ -180,11 +188,20 @@ local function spawnEnemy(enemyName, cframe, parent)
     -- Create health bar GUI for the enemy
     createHealthBarGUI(enemyInstance)
 
+    -- Get enemy data and set health if available
+    local enemyData = getEnemyData(enemyName)
+    if enemyData and enemyData.Health then
+        local humanoid = getHumanoid(enemyInstance)
+        if humanoid then
+            humanoid.MaxHealth = enemyData.Health
+            humanoid.Health = enemyData.Health
+        end
+    end
+
     table.insert(enemyModels, enemyInstance)
 
     print("Enemy: " .. enemyName .. " spawned successfully.")
 end
-
 
 -- Function to spawn enemies in a given zone
 function EnemyService:spawnEnemiesInZone(zoneTagName)

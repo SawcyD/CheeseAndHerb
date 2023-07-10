@@ -24,14 +24,14 @@ end
 function Test:AddDamageStat(player,  amount)
     DataService:GetReplica(player):andThen(function(replica)
         local statValue = replica.Data.Stats.Damage or 0
-        replica:SetValue({"Stats", "Damage"}, statValue + amount)
+        replica:SetValue("Attributes.Damage", statValue + amount)
     end)
 end
 
 function Test:AddHealthStat(player,  amount)
     DataService:GetReplica(player):andThen(function(replica)
         local statValue = replica.Data.Stats.Health or 0
-        replica:SetValue({"Stats", "Health"}, statValue + amount)
+        replica:SetValue("Attributes.Health", statValue + amount)
     end)
 end
 
@@ -39,7 +39,7 @@ end
 function Test:AddStaminaStat(player,  amount)
     DataService:GetReplica(player):andThen(function(replica)
         local statValue = replica.Data.Stats.Stamina or 0
-        replica:SetValue({"Stats", "Stamina"}, statValue + amount)
+        replica:SetValue("Attributes,Stamina", statValue + amount)
     end)
 end
 

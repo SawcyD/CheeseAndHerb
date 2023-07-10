@@ -16,6 +16,10 @@ local CraftingService = {}
 local recipeData = require(ReplicatedStorage.Data.recipeData)
 local ingredientData = require(ReplicatedStorage.Data.ingredientsData)
 
+CraftingService.Passes = {
+    x2LuckChance = 1, -- do
+}
+
 
 -- Function to check if a player has the required ingredients for a recipe
 local function hasEnoughIngredients(recipe)

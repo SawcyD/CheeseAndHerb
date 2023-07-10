@@ -1,454 +1,118 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local UserInputService = game:GetService("UserInputService")
-local Manager = require(script.Parent.Parent.PlayerData.Manager)
-local Player = game.Players:GetPlayers()[1] or game.Players.PlayerAdded:Wait()
+local ServerScriptService = game:GetService("ServerScriptService")
+local DataService = require(ServerScriptService.Server.Modules.DataService)
 
+local EasyNetwork = require(ReplicatedStorage.Libs.Network)
 
-local DataService = require(script.Parent.DataService)
+local Mainmodule = require(ReplicatedStorage.Modules.Combat)
+local HitBoxModule = require(ReplicatedStorage.Modules.Hitbox)
 
-local weaponsData = require(ReplicatedStorage.Data.weaponsData)
-local enemiesData = require(ReplicatedStorage.Data.enemiesData)
-
+local Animations = ReplicatedStorage.Assets.Animations
+local Audios = ReplicatedStorage.Assets.Audio
 
 local CombatService = {}
 
-local comboAnimations = {
-    GreatSword = {
-        Idle = {
-            "rbxassetid://13804839792"
-        },
-        Block = { AnimationId = "rbxassetid://13804851745" },
-        Attacks = {
-            LightAttack = {
-                AnimationIds = {
-                    "rbxassetid://13804867659", -- Attack2
-                    "rbxassetid://13804875467", -- Attack1
-                 }
-            },
-            HeavyAttack = {
-                AnimationId = "rbxassetid://13804855777", -- animationID
-                holdDuration = 1.0
-            }
-        }
+function CombatService.HandleCombat(player, data)
+	local character = player.Character
+	local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
-        --ids
-    },
-    Sword = {
-        Idle = {},
-        Block = {},
-        Attacks = {
-            LightAttack = {
-                AnimationId = "--lightAttackId"
-            },
-            HeavyAttack = {
-                AnimationId = "", -- animationID
-                holdDuration = 0.8
-            }
-        }
-    },
-    Axe = {
-        Idle = {},
-        Block = {},
-        Attacks = {
-            LightAttack = {
-                AnimationId = "--lightAttackId"
-            },
-            HeavyAttack = {
-                AnimationId = "", -- animationID
-                holdDuration = 1.2
-            }
-        }
-    }
-}
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.FilterDescendantsInstances = { character }
 
-local comboSystem = {
-    currentCombo = {},
-    maxComboSize = 3, -- Adjust the maximum combo size as needed
-}
-local hitboxes = {
-    LightAttack = {
-        size = Vector3.new(5, 5, 5),
-        duration = 0.5,
-        damageMultiplier = 1.0
-    },
-    HeavyAttack = {
-        size = Vector3.new(7, 7, 7),
-        duration = 1.0,
-        damageMultiplier = 1.5
-    },
-    Skill = {
-        size = Vector3.new(10, 10, 10),
-        duration = 1.5,
-        damageMultiplier = 2.0
-    }
-}
+	if data.Action == "M1" then
+		local combo = data.Combo
 
--- Add these at the beginning of the script to load required modules and assets
-local TextService = game:GetService("TextService")
-local DamageNumberPrefab = ReplicatedStorage.Assets.Prefabs.DamageNumber -- Replace with your own damage number prefab
-local HitEffectPrefab = ReplicatedStorage.Assets.Prefabs.Hit-- Replace with your own hit effect prefab
+		local hitbox = HitBoxModule.CreateHitbox()
+		hitbox.Size = Vector3.new(4, 4, 4)
+		hitbox.CFrame = humanoidRootPart.CFrame
+		hitbox.Offset = CFrame.new(0, 0, -3.5)
+		hitbox.Visualizer = false
+		hitbox.RaycastParams = params
 
-local function GetEquippedWeaponType(character)
-    DataService:GetReplica(Player):andThen(function(replica)
-        if replica then
-            local equippedWeaponType = replica.Data.EquippedWeapon.WeaponType
-            if equippedWeaponType then
-                return equippedWeaponType
-            end
-        end
-    end)
-    return nil -- Return nil if the equipped weapon type is not found or not defined
+		hitbox.Touched:Connect(function(hit)
+			local eHumanoid = hit.Parent:FindFirstChildOfClass("Humanoid")
+			if eHumanoid then
+				if combo < 5 then
+					if eHumanoid.Parent:FindFirstChild("Block") then
+						Mainmodule.Actions.SoundEffect(eHumanoid.Parent, Audios.CombatHit.BlockedSound)
+						Mainmodule.Effects.BlockEffect(eHumanoid.Parent)
+					else
+						eHumanoid:TakeDamage(combo + 4)
+						Mainmodule.Effects.HitEffect(eHumanoid.Parent)
+
+						-- Apply the appropriate combat animation based on fighting style
+						local fightingStyle = nil
+
+						-- Get the player's fighting style from data service
+						DataService:GetReplica(player):andThen(function(replica)
+							fightingStyle = replica.Data.fightingStyle.Name
+							if fightingStyle then
+								-- Apply the corresponding combat animation based on the fighting style
+								local combatAnimation = Animations.CombatHit[combo][fightingStyle]
+								Mainmodule.Actions.Animation(eHumanoid, combatAnimation)
+
+								Mainmodule.Actions.Stun(eHumanoid.Parent, 2)
+							else
+								print(player.Name .. " doesn't have a fighting Style Equipped.")
+							end
+						end)
+					end
+
+					Mainmodule.Actions.Knockback(
+						eHumanoid.Parent:WaitForChild("HumanoidRootPart"),
+						humanoidRootPart,
+						10
+					)
+				else
+					if eHumanoid.Parent:FindFirstChild("Block") then
+						eHumanoid:TakeDamage(combo + 4)
+						Mainmodule.Effects.BlockBreakEffect(eHumanoid.Parent)
+
+						Mainmodule.Actions.SoundEffect(eHumanoid.Parent, Audios.CombatHit.BlockBreak)
+						Mainmodule.Actions.Stun(eHumanoid.Parent, 4)
+						eHumanoid.Parent:FindFirstChild("Block"):Destroy()
+					else
+						eHumanoid:TakeDamage(combo + 4)
+						Mainmodule.Effects.HitEffect(eHumanoid.Parent)
+
+						Mainmodule.Actions.Stun(eHumanoid.Parent, 2)
+						Mainmodule.Actions.SoundEffect(eHumanoid.Parent, Audios.CombatHit[combo])
+						Mainmodule.Actions.Knockback(
+							eHumanoid.Parent:WaitForChild("HumanoidRootPart"),
+							humanoidRootPart,
+							45
+						)
+					end
+				end
+
+				Mainmodule.Actions.Knockback(humanoidRootPart, humanoidRootPart, 10)
+			end
+		end)
+
+		hitbox:Start()
+		task.wait(data.CD)
+		hitbox:Stop()
+	elseif data.Action == "Block" then
+		if data.Type == "On" then
+			Mainmodule.Actions.Value("BoolValue", true, character, "Block")
+			Mainmodule.Actions.Animation(character.Humanoid, Animations.Combat.Blocking)
+		elseif data.Type == "Off" then
+			local block = character:FindFirstChild("Block")
+			if block then
+				block:Destroy()
+			end
+			for _, v in pairs(character.Humanoid:GetPlayingAnimationTracks()) do
+				v:Stop()
+			end
+		end
+	end
 end
 
-local function GetAttackTypeFromInput(input)
-    -- Implement the logic to determine the attack type based on the input
-    if input == Enum.UserInputType.MouseButton1 then
-        return "LightAttack"
-    elseif input == Enum.UserInputType.MouseButton2 then
-        return "HeavyAttack"
-    end
-    return nil
-end
-
--- Implement the logic to retrieve the skill data from the weaponsData table
-
-function CombatService:DealDamage(weaponModel,target, hitbox)
-    DataService:GetReplica(Player):andThen(function(replica)
-        local weapon = weaponsData[replica.Data.EquippedWeapon.Name]
-        local damage = weapon.damage + replica.Data.Damage
-        local damageReduction = replica.Data.BlockDamageReduction
-        
-        damage = damage * hitbox.damageMultiplier
-
-        if math.random() <= replica.data.CriticalChance then
-            local criticalMultiplier = replica.Data.CriticalMultiplier
-            damage = damage * criticalMultiplier
-        end
-
-        if replica.Data.Blocking then
-            -- Reduce incoming damage if the player is blocking
-            damage = damage * (1 - damageReduction)
-        end
-
-        target:SetAttribute("Health", target:GetAttribute("Health") - damage)
-
-        self:ShowDamageNumber(target.Character.HumanoidRootPart, damage)
-
-        self:ShowHitEffect(target.Character.HumanoidRootPart)
-
-        if target:GetAttribute("Health") <= 0 then
-            self:HandleDefeat(target)
-        end
-
-    end)
-end
-
-function CombatService:ShowDamageNumber(position, damage)
-    local damageNumber = DamageNumberPrefab:Clone()
-    damageNumber.TextLabel.Text = tostring(damage)
-    damageNumber.Position = position.Position + Vector3.new(0, 3, 0)
-    damageNumber.Parent = workspace
-
-    -- Remove the damage number after a certain duration
-    task.delay(
-        2,
-        function()
-            damageNumber:Destroy()
-        end
-    )
-end
-
-function CombatService:Block(player)
-    -- Implement the logic for blocking here
-    -- For example, you can play the block animation and reduce incoming damage
-    DataService:GetReplica(Player):andThen(function(replica)
-        replica.Data.Blocking = true
-        -- Get the character of the player
-        local character = player.Character
-        if not character then
-            return
-        end
-        
-        -- Play the block animation
-        local humanoid = character:FindFirstChildOfClass("Humanoid")
-        if humanoid then
-            local weaponType = replica.Data.EquippedWeapon.WeaponType
-            if weaponType then
-                local blockAnimationId = comboAnimations[weaponType].Block.AnimationId
-                if blockAnimationId then
-                    local animation = Instance.new("Animation")
-                    animation.AnimationId = blockAnimationId
-                    
-                    local loadedAnimation = humanoid:LoadAnimation(animation)
-                    loadedAnimation:Play()
-                end
-            end
-        end
-
-        local damageReduction = replica.Data.BlockDamageReduction
-
-        -- Reduce incoming damage
-        -- You can use the damageReduction variable to reduce the incoming damage
-
-    end)
-    
-    
-    -- Reduce incoming damage
-
-end
-
-function CombatService:ShowHitEffect(position)
-    local hitEffect = HitEffectPrefab:Clone()
-    hitEffect.Position = position.Position
-    hitEffect.Parent = workspace
-
-    -- Find the attachment inside the hit effect prefab
-    local attachment = hitEffect:FindFirstChild("Attachment")
-    if attachment then
-        -- Find all ParticleEmitters within the attachment
-        local particleEmitters = attachment:GetDescendantsOfClass("ParticleEmitter")
-        for _, particleEmitter in ipairs(particleEmitters) do
-            -- Start emitting particles
-            particleEmitter.Enabled = true
-
-            -- Stop emitting particles after a certain duration
-            task.delay(
-                2,
-                function()
-                    particleEmitter.Enabled = false
-                end
-            )
-        end
-    end
-end
-
-function CombatService:HandleDefeat(target)
-    DataService:GetReplica(Player):andThen(function(replica)
-        local enemyData = enemiesData[target.Name] -- Retrieve the enemy data from the table
-
-        -- Play defeat animation or any other desired logic
-
-        -- Create a fade-up effect
-        local fadeUpPart = Instance.new("Part")
-        fadeUpPart.Size = Vector3.new(5, 5, 5)
-        fadeUpPart.CFrame = target.Character.HumanoidRootPart.CFrame
-        fadeUpPart.Transparency = 1
-        fadeUpPart.Anchored = true
-        fadeUpPart.Parent = workspace
-
-        local fadeUpTween = game:GetService("TweenService"):Create(fadeUpPart, TweenInfo.new(1), { Transparency = 0 })
-        fadeUpTween:Play()
-
-        -- Create a small explosion of white particles
-        local explosionEmitter = Instance.new("ParticleEmitter")
-        explosionEmitter.Parent = target.Character.HumanoidRootPart
-        explosionEmitter.Transparency = NumberSequence.new(0.2)
-        explosionEmitter.Size = NumberSequence.new(2)
-        explosionEmitter.Color = ColorSequence.new(Color3.new(1, 1, 1))
-        explosionEmitter.Texture = "rbxassetid://226707243" -- Replace with your desired particle texture ID
-        explosionEmitter:Emit(50) -- Adjust the number of particles as needed
-
-        -- Award drops, exp, herbal coins, and mystic shards
-        for _, dropItem in ipairs(enemyData.DropsTable) do
-            -- Award the drop item to the player here
-            print("You obtained: " .. dropItem)
-        end
-        -- TODO: I need to make the Level/exp System with the stats increase as the level increases
-        -- Award experience points
-        -- coming soon 
-        -- Award herbal coins
-        replica:SetValue("HerbalCoins", replica.Data.HerbalCoins + enemyData.HerbalCoinsOnKill)
-        -- Award mystic shards
-        replica:SetValue("MysticShards", replica.Data.MysticShards + enemyData.MysticShardsOnKill)
-
-        -- Destroy the fade-up part and particle emitter after a certain duration
-        task.delay(1, function()
-            fadeUpPart:Destroy()
-            explosionEmitter:Destroy()
-        end)
-    end)
-
-
-end
-
-function CombatService:PlaySkillAnimation(character, skillData)
-    -- Implement the logic to play the skill animation based on the skillData
-    local skillAnimationId = skillData.AnimationId
-    -- Play animation using skillAnimationId
-end
-
-function CombatService:ApplySpecialEffects(character, skillData)
-    -- Implement the logic to apply special effects based on the skillData
-    -- Example: Apply particle effects, sounds, or any other visual/audio effects
-    -- based on the skillData properties
-end
-
-function CombatService:GetTargetInHitbox(hitbox)
-    -- Implement the logic to determine the target within the hitbox
-    local region = Region3.new(hitbox.CFrame.Position - hitbox.Size / 2, hitbox.CFrame.Position + hitbox.Size / 2)
-    local parts = workspace:GetPartBoundsInBox(region, nil, math.huge)
-    local target = nil
-    local closestDistance = math.huge
-
-    for _, part in ipairs(parts) do
-        local humanoid = part.Parent:FindFirstChild("Humanoid")
-        if humanoid and humanoid.Health > 0 then
-            local distance = (part.Position - hitbox.CFrame.Position).Magnitude
-            if distance < closestDistance then
-                target = humanoid.Parent
-                closestDistance = distance
-            end
-        end
-    end
-
-    return target
-end
-
-
-function CombatService:PlayAttackAnimation(character, attackType)
-    DataService:GetReplica(Player):andThen(function(replica)
-        local humanoid = character:FindFirstChildOfClass("Humanoid")
-        if not humanoid then
-            return
-        end
-        
-        local weaponType = replica.Data.EquippedWeapon.WeaponType
-        local equipped = replica.Data.EquippedWeapon.Equipped  -- Check if weapon is equipped
-        local animationId
-        local holdDuration
-
-        if equipped then  -- Only continue if the weapon is equipped
-            if attackType == "LightAttack" then
-                local lightAttackAnimations = comboAnimations[weaponType].Attacks.LightAttack.AnimationIds
-                if lightAttackAnimations and #lightAttackAnimations > 0 then
-                    -- Select a random animation ID
-                    local randomIndex = math.random(1, #lightAttackAnimations)
-                    animationId = lightAttackAnimations[randomIndex]
-                end
-            elseif attackType == "HeavyAttack" then
-                animationId = comboAnimations[weaponType].Attacks.HeavyAttack.AnimationId
-                holdDuration = comboAnimations[weaponType].Attacks.HeavyAttack.holdDuration
-            end
-
-            if animationId then
-                local animation = Instance.new("Animation")
-                animation.AnimationId = animationId
-
-                local loadedAnimation = humanoid:LoadAnimation(animation)
-                loadedAnimation:Play()
-            end
-
-            if holdDuration then
-                -- Add a hold effect for heavy attacks
-                task.wait(holdDuration)
-            end
-
-            -- Play the idle animation if the player is not moving or attacking
-            if attackType == nil and humanoid.MoveDirection.Magnitude == 0 then
-                local idleAnimationId = comboAnimations[weaponType].Idle.AnimationId
-                if idleAnimationId then
-                    local idleAnimation = Instance.new("Animation")
-                    idleAnimation.AnimationId = idleAnimationId
-
-                    local loadedIdleAnimation = humanoid:LoadAnimation(idleAnimation)
-                    loadedIdleAnimation:Play()
-                end
-            end
-        end
-    end)
-end
-
-
-function CombatService:GetSkillDataFromWeaponsData(skillName)
-    if weaponsData[skillName] then
-        return weaponsData[skillName]
-    end
-    return nil
-end
-
-
-
-function CombatService:OnComboInput(player, input)
-    local character = player.Character
-    local attackType = self:GetAttackTypeFromInput(input)
-
-    -- Play attack animation based on the attack type and weapon type
-    self:PlayAttackAnimation(character, attackType)
-
-    -- Get the hitbox for the attack type
-    local hitbox = hitboxes[attackType]
-
-    -- Get the target character based on the hitbox
-    local target = self:GetTargetInHitbox(hitbox)
-
-    -- Deal damage to the target
-    if target and target ~= character then
-        self:DealDamage(character.BladeModel, target)
-    end
-end
-
-function CombatService:ResetCombo()
-    comboSystem.currentCombo = {}
-end
-
-function CombatService:AddToCombo(attackType)
-    table.insert(comboSystem.currentCombo, attackType)
-
-    if #comboSystem.currentCombo > comboSystem.maxComboSize then
-        table.remove(comboSystem.currentCombo, 1)
-    end
-
-    self:PerformComboAction()
-end
-
-function comboSystem:PerformComboAction()
-    local comboSequence = { "LightAttack", "LightAttack", "HeavyAttack" }
-
-    -- Check if the current combo matches the predefined sequence
-    if #self.currentCombo == #comboSequence then
-        local comboMatched = true
-        for i, attackType in ipairs(self.currentCombo) do
-            if attackType ~= comboSequence[i] then
-                comboMatched = false
-                break
-            end
-        end
-
-        if comboMatched then
-            -- Perform the action for the matched combo sequence
-            print("Combo Matched: " .. table.concat(self.currentCombo, " > "))
-
-            -- Reset the combo after performing the action
-            self:ResetCombo()
-        end
-    end
-end
-
-function CombatService:OnSkillActivation(player, skillName)
-    -- Get the skill data from weaponsData table based on the skillName
-    local skillData = self:GetSkillDataFromWeaponsData(skillName)
-
-    -- Get the hitbox for the skill
-    local hitbox = hitboxes["Skill"]
-
-    -- Get the target character based on the hitbox
-    local target = self:GetTargetInHitbox(hitbox)
-
-    -- Deal damage to the target
-    if target then
-        self:DealDamage(player.Character, target, hitbox)
-    end
-
-    -- Play skill animation and apply special effects based on the skillData
-    self:PlaySkillAnimation(player.Character, skillData)
-    self:ApplySpecialEffects(player.Character, skillData)
-end
-
-
--- // Connections // --
-
-
--- Register combo inputs from the client
-
+EasyNetwork:BindEvents({
+	CombatEvent = function(client, player, data)
+		CombatService.HandleCombat(player, data)
+	end,
+})
 
 return CombatService

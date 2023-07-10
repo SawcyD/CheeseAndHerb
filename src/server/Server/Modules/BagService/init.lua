@@ -5,10 +5,13 @@ local Player = game.Players:GetPlayers()[1] or game.Players.PlayerAdded:Wait()
 local DataFolder = ReplicatedStorage.Data
 
 local ingredientsBagData = require(DataFolder.ingredientsBagData)
+local marketplaceData = require(DataFolder.marketplaceData)
 local Manager = require(ServerScriptService.Server.PlayerData.Manager)
 local DataService = require(ServerScriptService.Server.Modules.DataService)
 
 local module = {}
+
+
 
 local function updateBagAttributes(replica, equippedBag)
     local bagData = nil

@@ -6,7 +6,11 @@ local playerData = {
             IngredientsBag = {},
 
         },
-        Pills = {},
+        Elixirs = {
+            BagStackAmountMax = 25,
+            BagSlots = 10,
+            ElixirsBag = {},
+        },
         Weapons = {},
     },
     Recipes = {},
@@ -23,10 +27,9 @@ local playerData = {
     HerbalCoins = 100,
     MysticShards = 0,
     RobuxTokens = 0, -- this allows the player to spend the token instead of robux, but it has the same eviquincy to robux, 1 == 1 
-    EquippedWeapon = {
+    FightingStyle = {
         Name = "Excalibur",
-        WeaponType = "GreatSword",
-        Equipped = true
+
     },
     Quests = {
         Active = {},
@@ -41,28 +44,21 @@ local playerData = {
         EquippedBag = "Novice's Ingredients Bag"
         
     },
-    PillBags = {
+    Elixirs = {
         "Novice's Pill Bag",
         --more
     },
 
     -- Stats
-    StatPoints = 3, -- The number of available stat points for the player to allocate
-    Stats = {
+    StatPoints = 4, -- The number of available stat points for the player to allocate
+    Attributes = {
         Damage = 0, -- increases the damage of the player by .1% per point
         Health = 0, -- increases the health of the player by .1% per point
         Stamina = 0, -- increases the stamina of the player by .1% per point
         Critical = 0, -- increases the critical chance of the player by .1% per point
+        Luck = 0, -- increases the chance of getting a rare item by .1% per point
     },
     
-    Blocking = false,
-
-
-    BlockDamageReduction = .4,
-
-    CriticalChance = 0.1,
-
-    CriticalMultiplier = 1.5,
 
     -- Achievements
     EnemiesKilled = 0
